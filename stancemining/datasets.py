@@ -393,8 +393,8 @@ def _load_one_dataset(name, split='test', group=True, remove_synthetic_neutral=T
             }
         elif task == 'claim-entailment-4way':
             mapping = {
-                'leaning refuting': 'discussing',
-                'leaning supporting': 'discussing',
+                'leaning refuting': 'refuting',
+                'leaning supporting': 'supporting',
                 'neutral': 'discussing',
                 'querying': 'discussing'
             }
