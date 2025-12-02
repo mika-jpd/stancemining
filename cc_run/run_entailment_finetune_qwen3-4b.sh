@@ -35,4 +35,4 @@ echo "================================"
 pip install python-dotenv transformers wandb hydra-core sentence-transformers accelerate datasets evaluate peft bert-score sacrebleu nltk vllm gpytorch pyro-api pyro-ppl
 pip install --no-index polars
 
-python -m experiments.scripts.train_models finetune.task=claim-entailment-4way data.dataset=[stanceosaurus,kirk] finetune.model_name=Qwen/Qwen3-4B finetune.batch_size=64 finetune.grad_accum_steps=2 finetune.classification_method=head finetune.num_epochs=3 finetune.attn_implementation=null
+python -m experiments.scripts.train_models finetune.task=claim-entailment-4way data.dataset=[stanceosaurus,kirk] finetune.model_name=Qwen/Qwen3-4B finetune.batch_size=32 finetune.grad_accum_steps=2 finetune.classification_method=head finetune.num_epochs=3 finetune.attn_implementation=null
