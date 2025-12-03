@@ -725,23 +725,50 @@ class ModelTrainer:
         self.model_config.tokenizer = tokenizer
 
     def prepare_for_continued_training(self) -> None:
-        """Prepare model for training when we're picking up after a checkpoint"""
+        """Prepare model for training when continuing from checkpoint"""
 
-        # enable gradiens on LoRA and saved modules
-        for name, params in self.model_config.model.named_parameters():
+        self.model_config.model.train()
+
+        # Debug: check state before
+        print("\n=== Before enabling gradients ===")
+        for name, param in self.model_config.model.named_parameters():
             if any(key in name for key in ['lora_', 'score', 'classifier']):
-                params.requires_grad = True
+                print(f"  {name}: requires_grad={param.requires_grad}")
+
+        # Prepare for gradient checkpointing if needed (must be done before enabling checkpointing)
+        if self.training_config.grad_accum_steps > 1 or self.model_config.quantization is not None:
+            self.model_config.model = peft.prepare_model_for_kbit_training(self.model_config.model)
+
+        # Enable gradient checkpointing if needed
+        if self.training_config.grad_accum_steps > 1:
+            self.model_config.model.gradient_checkpointing_enable(
+                gradient_checkpointing_kwargs={"use_reentrant": False}
+            )
+
+        # PEFT didn't set requires_grad on load, so do it manually
+        enabled_count = 0
+        for name, param in self.model_config.model.named_parameters():
+            if any(key in name for key in ['lora_', 'score', 'classifier']):
+                param.requires_grad = True
+                enabled_count += 1
+
+        print(f"\n=== Enabled gradients on {enabled_count} parameters ===")
+
+        # Debug: check state after
+        print("\n=== After enabling gradients ===")
+        for name, param in self.model_config.model.named_parameters():
+            if param.requires_grad:
+                print(f"  {name}: shape={tuple(param.shape)}")
 
         if self.training_config.grad_accum_steps > 1:
             self.model_config.model.gradient_checkpointing_enable(
                 gradient_checkpointing_kwargs={"use_reentrant": False}
             )
 
-        # verify we have trainable params
-        trainable = [n for n, p in self.model_config.model.named_parameters() if p.requires_grad]
-        if not trainable:
-            raise RuntimeError("No trainable parameters found in model after loading checkpoint !")
-        print(f"Trainable parameters: {len(trainable)}")
+        print("\n=== PEFT summary ===")
+        self.model_config.model.print_trainable_parameters()
+        print()
+
 
     def prepare_for_training(self) -> None:
         """Prepare model for training with LoRA"""
@@ -897,10 +924,6 @@ class ModelTrainer:
             self.accelerator,
             self.training_config.neftune_noise_alpha
         )
-        # get which params are trainable
-        trainable_params = [p for p in self.model_config.model.parameters() if p.requires_grad]
-        print(f"Trainable params: {len(trainable_params)}")
-        print(f"Head requires_grad: {self.model_config.model.classification_head.weight.requires_grad}")
 
         # main training loop
         for epoch in range(self.training_config.num_epochs):

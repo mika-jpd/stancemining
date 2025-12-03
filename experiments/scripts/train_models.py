@@ -135,6 +135,8 @@ def _main(config, args):
 
         if not args.continue_training:
             trainer.prepare_for_training()
+        else:
+            trainer.prepare_for_continued_training()
         
         # Train model
         trainer.train(train_dataset, val_dataset, model_save_path, evaluator)
