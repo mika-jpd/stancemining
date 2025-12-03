@@ -878,6 +878,12 @@ class ModelTrainer:
             self.accelerator,
             self.training_config.neftune_noise_alpha
         )
+        # get which params are trainable
+        trainable_params = filter(lambda p: p.requires_grad, self.model_config.model.parameters())
+        print(f"Trainable params: {len(trainable_params)}")
+        print(f"Head requires_grad: {self.model_config.model.classification_head.weight.requires_grad}")
+
+        # main training loop
         for epoch in range(self.training_config.num_epochs):
             print(f"Epoch {epoch + 1}/{self.training_config.num_epochs}")
             self._train_step(
