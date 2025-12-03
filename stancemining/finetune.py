@@ -724,6 +724,25 @@ class ModelTrainer:
         self.model_config.model = model
         self.model_config.tokenizer = tokenizer
 
+    def prepare_for_continued_training(self) -> None:
+        """Prepare model for training when we're picking up after a checkpoint"""
+
+        # enable gradiens on LoRA and saved modules
+        for name, params in self.model_config.model.named_parameters():
+            if any(key in name for key in ['lora_', 'score', 'classifier']):
+                params.requires_grad = True
+
+        if self.training_config.grad_accum_steps > 1:
+            self.model_config.model.gradient_checkpointing_enable(
+                gradient_checkpointing_kwargs={"use_reentrant": False}
+            )
+
+        # verify we have trainable params
+        trainable = [n for n, p in self.model_config.model.named_parameters() if p.requires_grad]
+        if not trainable:
+            raise RuntimeError("No trainable parameters found in model after loading checkpoint !")
+        print(f"Trainable parameters: {len(trainable)}")
+
     def prepare_for_training(self) -> None:
         """Prepare model for training with LoRA"""
         if self.training_config.grad_accum_steps > 1:
@@ -879,7 +898,7 @@ class ModelTrainer:
             self.training_config.neftune_noise_alpha
         )
         # get which params are trainable
-        trainable_params = filter(lambda p: p.requires_grad, self.model_config.model.parameters())
+        trainable_params = [p for p in self.model_config.model.parameters() if p.requires_grad]
         print(f"Trainable params: {len(trainable_params)}")
         print(f"Head requires_grad: {self.model_config.model.classification_head.weight.requires_grad}")
 
