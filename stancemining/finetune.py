@@ -369,7 +369,7 @@ class ChatTemplateTokenizer:
 
         if self.tokenizer.chat_template is not None:
             messages = to_message_format(text, label)
-        
+
             inputs = self.tokenizer.apply_chat_template(
                 messages,
                 truncation=True,
@@ -729,12 +729,6 @@ class ModelTrainer:
 
         self.model_config.model.train()
 
-        # Debug: check state before
-        print("\n=== Before enabling gradients ===")
-        for name, param in self.model_config.model.named_parameters():
-            if any(key in name for key in ['lora_', 'score', 'classifier']):
-                print(f"  {name}: requires_grad={param.requires_grad}")
-
         # Prepare for gradient checkpointing if needed (must be done before enabling checkpointing)
         if self.training_config.grad_accum_steps > 1 or self.model_config.quantization is not None:
             self.model_config.model = peft.prepare_model_for_kbit_training(self.model_config.model)
@@ -751,14 +745,6 @@ class ModelTrainer:
             if any(key in name for key in ['lora_', 'score', 'classifier']):
                 param.requires_grad = True
                 enabled_count += 1
-
-        print(f"\n=== Enabled gradients on {enabled_count} parameters ===")
-
-        # Debug: check state after
-        print("\n=== After enabling gradients ===")
-        for name, param in self.model_config.model.named_parameters():
-            if param.requires_grad:
-                print(f"  {name}: shape={tuple(param.shape)}")
 
         if self.training_config.grad_accum_steps > 1:
             self.model_config.model.gradient_checkpointing_enable(
@@ -795,24 +781,28 @@ class ModelTrainer:
         else:
             raise ValueError(f"Unknown task: {self.model_config.task}")
 
+        print("\n=== LoRA summary ===")
+        lora_config = None
         if self.model_config.quantization is None:
             lora_config = peft.LoraConfig(
-                r=8,
-                lora_alpha=32,
+                r=8 if self.model_config.lora.r is None else self.model_config.lora.r,
+                lora_alpha=32 if self.model_config.lora.alpha is None else self.model_config.lora.alpha,
                 target_modules=modules,
-                lora_dropout=0.05,
+                lora_dropout=0.05 if self.model_config.lora.dropout is None else self.model_config.lora.dropout,
                 bias="none",
                 **lora_kwargs
             )
         elif self.model_config.quantization is not None:
             lora_config = peft.LoraConfig(
-                r=16,
-                lora_alpha=8,
+                r=16 if self.model_config.lora.r is None else self.model_config.lora.r,
+                lora_alpha=8 if self.model_config.lora.alpha is None else self.model_config.lora.alpha,
                 target_modules=modules,
-                lora_dropout=0.05,
+                lora_dropout=0.05 if self.model_config.lora.dropout is None else self.model_config.lora.dropout,
                 bias="none",
                 **lora_kwargs
             )
+        if lora_config:
+            print(lora_config)
         
         self.model_config.model = peft.get_peft_model(self.model_config.model, lora_config)
 
