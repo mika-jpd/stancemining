@@ -8,7 +8,8 @@ import polars as pl
 def load_dataset(name, split='test', group=True, remove_synthetic_neutral=True, task=None):
     if isinstance(name, str):
         df = _load_one_dataset(name, split, group, remove_synthetic_neutral, task)
-        return print(df.sample(10))
+        print(df.sample(10))
+        return df
     elif isinstance(name, Iterable):
         dfs = []
         for n in name:
