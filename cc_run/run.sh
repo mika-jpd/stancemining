@@ -1,4 +1,4 @@
-cd "$project/stancemining/"
+cd "$project/stancemining_forked_mika/"
 
 module purge
 module load StdEnv/2023
@@ -25,4 +25,4 @@ echo "================================"
 pip install python-dotenv transformers wandb hydra-core sentence-transformers accelerate datasets evaluate peft bert-score sacrebleu nltk vllm gpytorch pyro-api pyro-ppl
 pip install --no-index polars
 
-python -m experiments.scripts.train_models finetune.task=claim-entailment-4way data.dataset=[stanceosaurus,conspiracies] finetune.model_name=Qwen/Qwen3-8B finetune.batch_size=16 finetune.grad_accum_steps=2 finetune.classification_method=head finetune.num_epochs=3
+python -m experiments.scripts.train_model finetune.task=claim-entailment-4way data.dataset=[stanceosaurus,conspiracies] finetune.model_name=Qwen/Qwen3-8B finetune.batch_size=16 finetune.grad_accum_steps=2 finetune.classification_method=head finetune.num_epochs=3 finetune.lora_r=64 finetune.lora_alpha=128 finetune.attn_implementation=null
