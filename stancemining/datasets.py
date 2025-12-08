@@ -7,9 +7,15 @@ import polars as pl
 
 def load_dataset(name, split='test', group=True, remove_synthetic_neutral=True, task=None):
     if isinstance(name, str):
-        return _load_one_dataset(name, split, group, remove_synthetic_neutral, task)
+        df = _load_one_dataset(name, split, group, remove_synthetic_neutral, task)
+        return print(df.sample(10))
     elif isinstance(name, Iterable):
-        return pl.concat([_load_one_dataset(n, split, group, remove_synthetic_neutral, task) for n in name], how='diagonal_relaxed')
+        dfs = []
+        for n in name:
+            df = _load_one_dataset(n, split, group, remove_synthetic_neutral, task)
+            dfs.append(df)
+            print(df.sample(10))
+        return pl.concat(dfs, how='diagonal_relaxed')
     else:
         raise ValueError(f'Unknown dataset: {name}')
 
