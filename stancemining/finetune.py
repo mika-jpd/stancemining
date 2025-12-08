@@ -808,7 +808,8 @@ class ModelTrainer:
                 bias="none",
                 **lora_kwargs
             )
-        
+        print(f"Training wiht self.model_config.model: {self.model_config.model}")
+        print(f"Config with lora_config: {lora_config.to_dict()}")
         self.model_config.model = peft.get_peft_model(self.model_config.model, lora_config)
 
     def _find_all_linear_names(self) -> list:

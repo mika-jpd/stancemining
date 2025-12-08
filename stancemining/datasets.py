@@ -379,6 +379,57 @@ def _load_one_dataset(name, split='test', group=True, remove_synthetic_neutral=T
             mapping = {l: l.lower() for l in df['Stance'].unique()}
         else:
             raise ValueError(f'Unknown task: {task}')
+    elif name == "conspiracies":
+        path = os.path.join(datasets_path, "df_tagged_claim_sim_sample_15k_for_tagging.parquet.zstd")
+        df = pl.read_parquet(path)
+        if split == 'train':
+            df = df.head(int(0.8 * len(df)))
+        elif split == 'val':
+            df = df.slice(int(0.8 * len(df)), int(0.1 * len(df)))
+        elif split == 'test':
+            df = df.tail(int(0.1 * len(df)))
+
+        df = df.with_columns(
+            pl.col("target").alias("Target"),
+            pl.col("stance").alias("Stance")
+        )
+
+        if task == 'claim-entailment-2way':
+            mapping = {
+                'supporting': 'supporting',
+                'refuting': 'other',
+                'irrelevant': 'other',
+                'discussing': 'other'
+            }
+        elif task == 'claim-entailment-4way':
+            mapping = {
+                'supporting': 'supporting',
+                'refuting': 'refuting',
+                'irrelevant': 'irrelevant',
+                'discussing': 'discussing'}
+        else:
+            raise ValueError(f'Unknown task: {task}')
+
+        df = df.with_columns(pl.col('Stance').replace_strict(mapping))
+        if group:
+            if 'ParentTexts' in df.columns:
+                df = df.unique(['ParentTexts', 'Text', 'Target'])
+                df = df.group_by(['ParentTexts', 'Text']).agg([pl.col('Target'), pl.col('Stance')])
+            else:
+                df = df.unique(['Text', 'Target'])
+                df = df.group_by('Text').agg([pl.col('Target'), pl.col('Stance')])
+
+        df = df.with_columns(pl.lit(name).alias('Dataset'))
+
+        cols = ['Text', 'Target', 'Stance', 'Dataset']
+        if 'ParentTexts' in df.columns:
+            cols.append('ParentTexts')
+        if 'Context' in df.columns:
+            cols.append('Context')
+        df = df.select(cols)
+
+        return df
+
     elif name == 'kirk':
         kirk_context = "On September 10, 2025, Charlie Kirk, an American right-wing political activist, was assassinated while addressing an audience at Utah Valley University for a Turning Point USA speaking event. Kirk was fatally shot in the neck by a shooter on a building roof. The suspected shooter, Tyler Robinson, was identified 2 days later. Video footage spread rapidly on social media. Kirk's memorial was held at State Farm Stadium on September 21."
         path = os.path.join(datasets_path, 'df_entailment_4da257ab_claude_tagging_threshold_0_7_claims_added_to_text_False_with_entailment.parquet.zstd')

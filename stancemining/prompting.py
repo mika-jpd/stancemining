@@ -249,13 +249,13 @@ CLAIM_STANCE_DETECTION_4_LABELS = [
     },
     {
         'role': 'user',
-        'content': """Using the instructions determine the stance of the author of the text on the claim. CRITICAL: Entities in the text must match those in the claim for supporting/refuting classifications.
+        'content': """Using the instructions determine the stance of the author of the text with respect to the claim.
 
 Categories:
 
-supporting: Text directly confirms the claim or states something more specific that logically entails it. No inference needed.
+supporting: Text directly confirms the claim, states something more specific that logically entails it, or expresses approval/agreement with the claim's proposition.
 
-refuting: Text directly contradicts or disproves the claim.
+refuting: Text directly contradicts the claim, challenges the claim's validity, or expresses disapproval/disagreement with the claim's proposition.
 
 discussing: Text provides relevant context but doesn't confirm/refute the claim's specific proposition. Common with entity mismatches.
 
@@ -263,7 +263,8 @@ irrelevant: No meaningful connection to the claim.
 
 Entity Rules:
 - Specific entities in claims (e.g., "left-wing individuals") must be present in text
-- Generic terms ("people", "someone") don't match specific entity claims
+- Entities in the text must match those in the claim for supporting/refuting classifications
+- A text with specific entities can support/refute a claim with generic entity categories, but a claim with specific entities must match or be compatible with those in the text
 - Don't infer entity attributes absent from the text
 
 Examples:
@@ -287,6 +288,11 @@ Text: "Saw a clip of Charlie Kirk. That was horrific. Seen a lot of attention se
 Claim: "Vaccine mandates increased political polarization"
 Classification: Irrelevant
 Reasoning: Text discusses Kirk's death, unrelated to vaccines.
+
+Text: "Good riddance to Kirk"
+Claim: "Charlie Kirk's death was tragic"
+Classification: Refuting
+Reasoning: The text expresses the opposite sentiment of the claim.
 
 Text: "{text}"
 Claim: "{target}"
@@ -407,7 +413,8 @@ Classification: Irrelevant
 Reasoning: Text discusses Kirk's death, unrelated to vaccines.
 
 Text: "{text}"
-Claim: "{target}\""""
+Claim: "{target}"
+"""
     },
     {
         'role': 'assistant',
@@ -422,13 +429,13 @@ CLAIM_STANCE_DETECTION_2_LABELS = [
     },
     {
         'role': 'user',
-        'content': """Using the instructions determine the stance of the author of the text on the claim. CRITICAL: Entities in the text must match those in the claim for supporting classifications.
+        'content': """Using the instructions determine the stance of the author of the text on the claim.
 
 Categories:
 
-Supporting: Text directly confirms the claim or states something more specific that logically entails it. No inference needed.
+supporting: Text directly confirms the claim, states something more specific that logically entails it, or expresses approval/agreement with the claim's proposition.
 
-Other: Text does not clearly support the claim.
+Other: Text does not clearly support the claim, it contradicts the claim, doesn't confirm/refute the claim, or has no meaningful connection to the claim.
 
 Entity Rules:
 - Specific entities in claims (e.g., "left-wing individuals") must be present in text
@@ -456,6 +463,11 @@ Text: "Saw a clip of Charlie Kirk. That was horrific. Seen a lot of attention se
 Claim: "Vaccine mandates increased political polarization"
 Classification: Other
 Reasoning: Text discusses Kirk's death, unrelated to vaccines.
+
+Text: "Good riddance to Kirk"
+Claim: "Charlie Kirk's death was tragic"
+Classification: Other
+Reasoning: The text expresses the opposite sentiment of the claim.
 
 Text: "{text}"
 Claim: "{target}"
