@@ -1,3 +1,13 @@
+#!/bin/bash
+#SBATCH --job-name=8b-2way
+#SBATCH --mem=280G
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=12
+#SBATCH --time=48:0:0
+#SBATCH --gres=gpu:h100:1
+#SBATCH --mail-user=mika.desblancs@mcgill.ca
+#SBATCH --mail-type=ALL
+
 cd "$project/stancemining_forked_mika/"
 
 module purge
