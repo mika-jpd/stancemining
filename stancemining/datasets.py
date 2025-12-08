@@ -391,7 +391,8 @@ def _load_one_dataset(name, split='test', group=True, remove_synthetic_neutral=T
 
         df = df.with_columns(
             pl.col("target").alias("Target"),
-            pl.col("stance").alias("Stance")
+            pl.col("stance").alias("Stance"),
+            pl.col("text").alias("Text")
         )
 
         if task == 'claim-entailment-2way':
