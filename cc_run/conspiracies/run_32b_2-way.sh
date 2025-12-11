@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=8b-2way
+#SBATCH --job-name=8b-4way
 #SBATCH --mem=280G
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=12
@@ -35,4 +35,4 @@ echo "================================"
 pip install python-dotenv transformers wandb hydra-core sentence-transformers accelerate datasets evaluate peft bert-score sacrebleu nltk vllm gpytorch pyro-api pyro-ppl
 pip install --no-index polars
 
-python -m experiments.scripts.train_model finetune.task=claim-entailment-2way data.dataset=[stanceosaurus,conspiracies] finetune.model_name=mistralai/Ministral-3-8B-Base-2512 finetune.batch_size=16 finetune.grad_accum_steps=2 finetune.classification_method=head finetune.num_epochs=3 finetune.lora_r=64 finetune.lora_alpha=128 finetune.attn_implementation=null
+python -m experiments.scripts.train_model finetune.task=claim-entailment-4way data.dataset=[stanceosaurus,conspiracies] finetune.model_name=Qwen/Qwen3-32B finetune.batch_size=16 finetune.grad_accum_steps=2 finetune.classification_method=head finetune.num_epochs=3 finetune.lora_r=64 finetune.lora_alpha=128 finetune.attn_implementation=null
