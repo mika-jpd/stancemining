@@ -35,4 +35,6 @@ echo "================================"
 pip install python-dotenv transformers wandb hydra-core sentence-transformers accelerate datasets evaluate peft bert-score sacrebleu nltk vllm gpytorch pyro-api pyro-ppl
 pip install --no-index polars
 
+export HF_HOME=/scratch/mikajpd/.cache/huggingface
+
 python -m experiments.scripts.train_model finetune.task=claim-entailment-2way data.dataset=[stanceosaurus,conspiracies] finetune.model_name=Qwen/Qwen3-8B finetune.batch_size=16 finetune.grad_accum_steps=2 finetune.classification_method=head finetune.num_epochs=2 finetune.lora_r=64 finetune.lora_alpha=64 finetune.attn_implementation=null
